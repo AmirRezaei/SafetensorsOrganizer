@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*' # This triggers the workflow on new tags
+  workflow_dispatch: # This allows manual triggering of the workflow
 
 jobs:
   build:
@@ -49,7 +50,6 @@ jobs:
       with:
         name: Release
         path: ./output
-        if-no-files-found: error
 
   release:
     needs: build
@@ -75,9 +75,4 @@ jobs:
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release
-        asset_name: your_console_app_${{ github.ref }}.zip
-        asset_content_type: application/zip
+       
