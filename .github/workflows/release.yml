@@ -77,7 +77,12 @@ jobs:
     - name: Extract Tag Name
       id: extract_tag
       run: |
-        echo "##[set-output name=tag;]${GITHUB_REF#refs/tags/}"
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+        else
+          TAG_NAME=$(date +'%Y%m%d%H%M%S')
+        fi
+        echo "::set-output name=tag;${TAG_NAME}"
       shell: bash
 
     - name: Create Release
