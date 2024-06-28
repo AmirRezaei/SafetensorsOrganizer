@@ -51,6 +51,13 @@ jobs:
         name: Release
         path: ./output
 
+    - name: Set build outputs
+      id: set_outputs
+      run: |
+        echo "::set-output name=os::${{ matrix.os }}"
+        echo "::set-output name=configuration::${{ matrix.configuration }}"
+        echo "::set-output name=runtime::${{ matrix.runtime }}"
+
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -75,4 +82,9 @@ jobs:
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
-       
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release
+        asset_name: your_console_app_${{ needs.build.outputs.os }}_${{ needs.build.outputs.configuration }}_${{ needs.build.outputs.runtime }}.zip
+        asset_content_type: application/zip
