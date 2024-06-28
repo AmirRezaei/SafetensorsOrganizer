@@ -1,5 +1,7 @@
 name: Build and Release
 
+runs-on: self-hosted
+
 on:
   push:
     tags:
