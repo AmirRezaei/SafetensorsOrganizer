@@ -1,0 +1,82 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # This triggers the workflow on new tags
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        configuration: [Release]
+        runtime: [win-x86, linux-x64, osx-x64]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration ${{ matrix.configuration }}
+
+    - name: Test
+      run: dotnet test --configuration ${{ matrix.configuration }}
+
+    - name: Publish
+      run: |
+        dotnet publish -c ${{ matrix.configuration }} \
+                       -r ${{ matrix.runtime }} \
+                       --self-contained true \
+                       /p:PublishSingleFile=true \
+                       /p:PublishReadyToRun=true \
+                       /p:PublishTrimmed=true \
+                       -o ./output
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: Release
+        path: ./output
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: Release
+        path: ./release
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release
+        asset_name: your_console_app_${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.runtime }}.zip
+        asset_content_type: application/zip
