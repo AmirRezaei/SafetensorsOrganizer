@@ -47,19 +47,18 @@ jobs:
 
     - name: Publish
       run: |
-        dotnet publish -c ${{ matrix.configuration }} \
-                       -r ${{ matrix.runtime }} \
-                       --self-contained true \
-                       /p:PublishSingleFile=true \
-                       /p:PublishReadyToRun=true \
-                       /p:PublishTrimmed=true \
-                       -o ./output
+        if [ $RUNNER_OS = 'Windows' ]; then \
+          dotnet publish -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} --self-contained true /p:PublishSingleFile=true /p:PublishReadyToRun=true /p:PublishTrimmed=true -o ./output; \
+        else \
+          dotnet publish -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:PublishTrimmed=true -o ./output; \
+        fi
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v3
       with:
         name: Release
         path: ./output
+        if-no-files-found: warn
 
     - name: Set build outputs
       id: set_outputs
@@ -88,11 +87,13 @@ jobs:
         prerelease: false
 
     - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release
-        asset_name: your_console_app_${{ needs.build.outputs.runtime }}.zip
-        asset_content_type: application/zip
+      run: |
+        zip -r release.zip ./release
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release.zip
+          asset_name: your_console_app_${{ needs.build.outputs.runtime }}.zip
+          asset_content_type: application/zip
