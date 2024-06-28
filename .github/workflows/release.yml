@@ -1,7 +1,5 @@
 name: Build and Release
 
-runs-on: self-hosted
-
 on:
   push:
     tags:
@@ -51,6 +49,7 @@ jobs:
       with:
         name: Release
         path: ./output
+        if-no-files-found: error
 
   release:
     needs: build
@@ -80,5 +79,5 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./release
-        asset_name: your_console_app_${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.runtime }}.zip
+        asset_name: your_console_app_${{ github.ref }}.zip
         asset_content_type: application/zip
