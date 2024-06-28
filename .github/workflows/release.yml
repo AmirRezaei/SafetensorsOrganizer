@@ -37,12 +37,12 @@ jobs:
 
     - name: Publish
       run: |
-        dotnet publish -c ${{ matrix.configuration }} \
-                       -r ${{ matrix.runtime }} \
-                       --self-contained true \
-                       /p:PublishSingleFile=true \
-                       /p:PublishReadyToRun=true \
-                       /p:PublishTrimmed=true \
+        dotnet publish -c ${{ matrix.configuration }} `
+                       -r ${{ matrix.runtime }} `
+                       --self-contained true `
+                       /p:PublishSingleFile=true `
+                       /p:PublishReadyToRun=true `
+                       /p:PublishTrimmed=true `
                        -o ./output
 
     - name: Archive production artifacts
