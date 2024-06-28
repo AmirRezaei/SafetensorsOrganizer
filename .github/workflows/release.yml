@@ -58,7 +58,6 @@ jobs:
       with:
         name: Release
         path: ./output
-        if-no-files-found: warn
 
     - name: Set build outputs
       id: set_outputs
@@ -87,13 +86,11 @@ jobs:
         prerelease: false
 
     - name: Upload Release Asset
-      run: |
-        zip -r release.zip ./release
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release.zip
-          asset_name: your_console_app_${{ needs.build.outputs.runtime }}.zip
-          asset_content_type: application/zip
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release
+        asset_name: your_console_app_${{ needs.build.outputs.runtime }}.zip
+        asset_content_type: application/zip
