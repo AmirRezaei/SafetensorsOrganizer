@@ -47,11 +47,13 @@ jobs:
 
     - name: Publish
       run: |
-        if [ $RUNNER_OS = 'Windows' ]; then \
-          dotnet publish -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} --self-contained true /p:PublishSingleFile=true /p:PublishReadyToRun=true /p:PublishTrimmed=true -o ./output; \
-        else \
-          dotnet publish -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:PublishTrimmed=true -o ./output; \
-        fi
+        dotnet publish -c ${{ matrix.configuration }} \
+                       -r ${{ matrix.runtime }} \
+                       --self-contained true \
+                       /p:PublishSingleFile=true \
+                       /p:PublishReadyToRun=true \
+                       /p:PublishTrimmed=true \
+                       -o ./output
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v3
@@ -74,25 +76,14 @@ jobs:
         name: Release
         path: ./release
 
-    - name: Extract Tag Name
-      id: extract_tag
-      run: |
-        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-        else
-          TAG_NAME=$(date +'%Y%m%d%H%M%S')
-        fi
-        echo "::set-output name=tag;${TAG_NAME}"
-      shell: bash
-
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.extract_tag.outputs.tag }}
-        release_name: Release ${{ steps.extract_tag.outputs.tag }}
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
         draft: false
         prerelease: false
 
